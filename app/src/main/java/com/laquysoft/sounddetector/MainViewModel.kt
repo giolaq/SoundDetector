@@ -1,24 +1,17 @@
 package com.laquysoft.sounddetector
 
 import android.app.Application
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.huawei.hms.mlsdk.sounddect.MLSoundDectListener
 import com.huawei.hms.mlsdk.sounddect.MLSoundDector
-
-sealed class State() {
-    class Stopped() : State()
-
-    class Running() : State()
-}
-
 
 class MainViewModel(private val mlSoundDetector: MLSoundDector, application: Application) :
     AndroidViewModel(application) {
 
-    private val _state = MutableLiveData<State>(State.Stopped())
+    private val _state = MutableLiveData<State>()
     val state: LiveData<State> = _state
 
 
@@ -26,12 +19,12 @@ class MainViewModel(private val mlSoundDetector: MLSoundDector, application: App
         override fun onSoundSuccessResult(result: Bundle) {
             val soundType = result.getInt(MLSoundDector.RESULTS_RECOGNIZED)
             if (soundType in 1..12) {
-                Log.d("MLSoundDectListener", "Show sound detected")
+                _state.value = State(isDetectorRunning = true, detectedSound = SoundEvent.values()[soundType])
             }
         }
 
         override fun onSoundFailResult(errCode: Int) {
-            Log.d("MLSoundDectListener", "failure")
+            _state.value = State(isDetectorRunning = true, error = errCode.toString())
         }
     }
 
@@ -40,17 +33,39 @@ class MainViewModel(private val mlSoundDetector: MLSoundDector, application: App
         mlSoundDetector.start(getApplication())
 
         val currentState = _state.value
-        if (currentState !is State.Stopped) {
+        if (currentState?.isDetectorRunning == true) {
             return
         }
 
-        _state.value = State.Running()
+        _state.value = State(isDetectorRunning = true)
     }
 
     fun stopListening() {
         mlSoundDetector.stop()
 
-        _state.value = State.Stopped()
+        _state.value = State(isDetectorRunning = false)
     }
 
+}
+
+data class State(
+    val isDetectorRunning: Boolean = false,
+    val detectedSound: SoundEvent? = null,
+    val error: String? = null
+)
+
+enum class SoundEvent{
+    LAUGHTER,
+    BABY_CRY,
+    SNORING,
+    SNEEZE,
+    SCREAMING,
+    MEOW,
+    BARK,
+    WATER,
+    CAR_ALARM,
+    DOORBELL,
+    KNOCK,
+    ALARM,
+    STEAM_WHISTLE
 }

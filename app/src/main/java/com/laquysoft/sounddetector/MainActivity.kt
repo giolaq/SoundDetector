@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
@@ -16,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -49,8 +51,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 )
-                val state by viewModel.state.observeAsState(State.Stopped())
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                val state by viewModel.state.observeAsState(State())
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.RECORD_AUDIO
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
                     ActivityCompat.requestPermissions(this, perms, RC_RECORD_CODE);
                 }
                 Home(
@@ -73,45 +79,82 @@ fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) 
     ) {
         Box(contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                when (state) {
-                    is State.Running -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "SoundDetection running",
-                                style = MaterialTheme.typography.h4,
-                                modifier = Modifier.padding(start = 30.dp, end = 30.dp)
-                            )
-                        }
-                        Button(
-                            onClick = { stopTimer() },
-                            shape = CircleShape,
-                            enabled = true,
-                            modifier = Modifier.padding(top = 30.dp)
-                        ) {
-                            Text(text = "Stop listening")
-                        }
-                    }
-                    is State.Stopped -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "SoundDetection stopped",
-                                style = MaterialTheme.typography.h4,
-                                modifier = Modifier.padding(start = 30.dp, end = 30.dp)
-                            )
-                        }
-                        Button(
-                            onClick = { startTimer() },
-                            shape = CircleShape,
-                            enabled = true,
-                            modifier = Modifier.padding(top = 30.dp)
-                        ) {
-                            Text(text = "Start listening")
-                        }
-                    }
+
+                DetectedSound(state.detectedSound)
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    DetectorStatus(state)
                 }
 
+                Button(
+                    onClick = { if (state.isDetectorRunning) stopTimer() else startTimer() },
+                    shape = CircleShape,
+                    enabled = true,
+                    modifier = Modifier.padding(top = 30.dp)
+                ) {
+                    Text(text = if (state.isDetectorRunning) "Stop listening" else "Start listening")
+                }
             }
+        }
+    }
+}
 
+@Composable
+private fun DetectorStatus(state: State) {
+    if (state.isDetectorRunning) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painterResource(R.drawable.listening),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(128.dp, 128.dp)
+                    .padding(top = 30.dp)
+            )
+            Text(
+                text = "SoundDetection running",
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+            )
+        }
+    } else {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painterResource(R.drawable.notlistening),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(128.dp, 128.dp)
+                    .padding(top = 30.dp)
+            )
+            Text(
+                text = "SoundDetection stopped",
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun DetectedSound(detectedSoundEvent: SoundEvent?) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(128.dp, 128.dp)
+    ) {
+        when (detectedSoundEvent) {
+            SoundEvent.KNOCK -> {
+                Image(
+                    painterResource(R.drawable.knock),
+                    contentDescription = null
+                )
+            }
+            SoundEvent.BABY_CRY -> {
+                Image(
+                    painterResource(R.drawable.cry),
+                    contentDescription = null
+                )
+            }
+            else -> {
+            }
         }
     }
 }
@@ -120,6 +163,22 @@ fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) 
 @Composable
 fun DefaultPreview() {
     SoundDetectorTheme {
-        Home(state = State.Running())
+        Home(state = State(isDetectorRunning = true))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreviewDetectorNotRunning() {
+    SoundDetectorTheme {
+        Home(state = State(isDetectorRunning = false))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreviewKnockDetected() {
+    SoundDetectorTheme {
+        Home(state = State(isDetectorRunning = true, detectedSound = SoundEvent.KNOCK))
     }
 }
