@@ -22,49 +22,46 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.huawei.hms.mlsdk.sounddect.MLSoundDector
 import com.laquysoft.sounddetector.ui.theme.SoundDetectorTheme
 import com.laquysoft.sounddetector.util.viewModelProviderFactoryOf
 
 class MainActivity : ComponentActivity() {
 
-
-    private val RC_RECORD_CODE = 0x123
-
-    private val perms = arrayOf(
-        Manifest.permission.RECORD_AUDIO
-    )
+    val soundDetector = SoundDetector(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         setContent {
             SoundDetectorTheme {
-                val mlSoundDetector by lazy { MLSoundDector.createSoundDector() }
 
                 val viewModel: MainViewModel = viewModel(
-                    factory = viewModelProviderFactoryOf {
-                        MainViewModel(
-                            mlSoundDetector,
-                            application
-                        )
-                    }
+                    factory = viewModelProviderFactoryOf { MainViewModel(soundDetector) }
                 )
                 val state by viewModel.state.observeAsState(State())
-                if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.RECORD_AUDIO
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    ActivityCompat.requestPermissions(this, perms, RC_RECORD_CODE);
-                }
+
+                checkMicrophonePermission()
+
                 Home(
                     state,
                     viewModel::startListening,
                     viewModel::stopListening
                 )
             }
+        }
+    }
+
+    private fun checkMicrophonePermission() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this, arrayOf(
+                    Manifest.permission.RECORD_AUDIO
+                ), 0x123
+            )
         }
     }
 }

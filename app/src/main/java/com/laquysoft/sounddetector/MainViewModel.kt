@@ -1,36 +1,24 @@
 package com.laquysoft.sounddetector
 
-import android.app.Application
 import android.os.Bundle
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.huawei.hms.mlsdk.sounddect.MLSoundDectListener
+import androidx.lifecycle.ViewModel
 import com.huawei.hms.mlsdk.sounddect.MLSoundDector
 
-class MainViewModel(private val mlSoundDetector: MLSoundDector, application: Application) :
-    AndroidViewModel(application) {
+class MainViewModel(private val soundDetector: SoundDetector) : ViewModel() {
 
     private val _state = MutableLiveData<State>()
     val state: LiveData<State> = _state
 
-
-    private val listener: MLSoundDectListener = object : MLSoundDectListener {
-        override fun onSoundSuccessResult(result: Bundle) {
-            val soundType = result.getInt(MLSoundDector.RESULTS_RECOGNIZED)
-            if (soundType in 1..12) {
-                _state.value = State(isDetectorRunning = true, detectedSound = SoundEvent.values()[soundType])
-            }
-        }
-
-        override fun onSoundFailResult(errCode: Int) {
-            _state.value = State(isDetectorRunning = true, error = errCode.toString())
-        }
+    init {
+        soundDetector.setCallbacks(
+            onSuccess = { result -> onSoundDetected(result) },
+            onError = { errCode -> onDetectorError(errCode) })
     }
 
     fun startListening() {
-        mlSoundDetector.setSoundDectListener(listener)
-        mlSoundDetector.start(getApplication())
+        soundDetector.startDetection()
 
         val currentState = _state.value
         if (currentState?.isDetectorRunning == true) {
@@ -41,9 +29,23 @@ class MainViewModel(private val mlSoundDetector: MLSoundDector, application: App
     }
 
     fun stopListening() {
-        mlSoundDetector.stop()
+        soundDetector.stopDetection()
 
         _state.value = State(isDetectorRunning = false)
+    }
+
+    private fun onSoundDetected(result: Bundle) {
+        val soundType = result.getInt(MLSoundDector.RESULTS_RECOGNIZED)
+        if (soundType in 1..12) {
+            _state.value = State(
+                isDetectorRunning = true,
+                detectedSound = SoundEvent.values()[soundType]
+            )
+        }
+    }
+
+    private fun onDetectorError(errorCode: Int) {
+        _state.value = State(isDetectorRunning = true, error = errorCode.toString())
     }
 
 }
@@ -54,7 +56,7 @@ data class State(
     val error: String? = null
 )
 
-enum class SoundEvent{
+enum class SoundEvent {
     LAUGHTER,
     BABY_CRY,
     SNORING,
