@@ -79,9 +79,7 @@ fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) 
 
                 DetectedSound(state.detectedSound)
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    DetectorStatus(state)
-                }
+                DetectorStatus(state)
 
                 Button(
                     onClick = { if (state.isDetectorRunning) stopTimer() else startTimer() },
@@ -98,35 +96,37 @@ fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) 
 
 @Composable
 private fun DetectorStatus(state: State) {
-    if (state.isDetectorRunning) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(
-                painterResource(R.drawable.listening),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(128.dp, 128.dp)
-                    .padding(top = 30.dp)
-            )
-            Text(
-                text = "SoundDetection running",
-                style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(start = 30.dp, end = 30.dp)
-            )
-        }
-    } else {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(
-                painterResource(R.drawable.notlistening),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(128.dp, 128.dp)
-                    .padding(top = 30.dp)
-            )
-            Text(
-                text = "SoundDetection stopped",
-                style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(start = 30.dp, end = 30.dp)
-            )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (state.isDetectorRunning) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painterResource(R.drawable.listening),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(128.dp, 128.dp)
+                        .padding(top = 30.dp)
+                )
+                Text(
+                    text = "SoundDetection running",
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                )
+            }
+        } else {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painterResource(R.drawable.notlistening),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(128.dp, 128.dp)
+                        .padding(top = 30.dp)
+                )
+                Text(
+                    text = "SoundDetection stopped",
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                )
+            }
         }
     }
 }
