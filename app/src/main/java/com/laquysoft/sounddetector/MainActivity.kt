@@ -2,18 +2,19 @@ package com.laquysoft.sounddetector
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Paint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ class MainActivity : ComponentActivity() {
 
     val soundDetector = SoundDetector(this)
 
+    @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -66,6 +68,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ExperimentalAnimationApi
 @Composable
 fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) {
     Surface(
@@ -74,20 +77,29 @@ fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) 
             .fillMaxHeight()
             .fillMaxWidth()
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(200.dp, 200.dp)) {
+            Card {
+                var expanded by remember { mutableStateOf(false) }
+                Column {
+                    DetectorStatus(state, Modifier.clickable {
+                        if (state.isDetectorRunning) stopTimer() else startTimer()
+                        expanded = !expanded
+                    })
 
-                DetectedSound(state.detectedSound)
+                    AnimatedVisibility(expanded) {
+                        Spacer(Modifier.size(20.dp))
 
-                DetectorStatus(state)
-
-                Button(
-                    onClick = { if (state.isDetectorRunning) stopTimer() else startTimer() },
-                    shape = CircleShape,
-                    enabled = true,
-                    modifier = Modifier.padding(top = 30.dp)
-                ) {
-                    Text(text = if (state.isDetectorRunning) "Stop listening" else "Start listening")
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(128.dp, 128.dp).padding(16.dp)
+                        ) {
+                            if (state.detectedSound == null) {
+                                CircularProgressIndicator(Modifier.size(64.dp, 64.dp))
+                            } else {
+                                DetectedSound(state.detectedSound)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -95,38 +107,22 @@ fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) 
 }
 
 @Composable
-private fun DetectorStatus(state: State) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+private fun DetectorStatus(state: State, modifier: Modifier) {
+    Box(modifier = modifier) {
         if (state.isDetectorRunning) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(
-                    painterResource(R.drawable.listening),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(128.dp, 128.dp)
-                        .padding(top = 30.dp)
-                )
-                Text(
-                    text = "SoundDetection running",
-                    style = MaterialTheme.typography.body1,
-                    modifier = Modifier.padding(start = 30.dp, end = 30.dp)
-                )
-            }
+            Image(
+                painterResource(R.drawable.notlistening),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(128.dp, 128.dp)
+            )
         } else {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(
-                    painterResource(R.drawable.notlistening),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(128.dp, 128.dp)
-                        .padding(top = 30.dp)
-                )
-                Text(
-                    text = "SoundDetection stopped",
-                    style = MaterialTheme.typography.body1,
-                    modifier = Modifier.padding(start = 30.dp, end = 30.dp)
-                )
-            }
+            Image(
+                painterResource(R.drawable.listening),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(128.dp, 128.dp)
+            )
         }
     }
 }
@@ -156,6 +152,7 @@ fun DetectedSound(detectedSoundEvent: SoundEvent?) {
     }
 }
 
+@ExperimentalAnimationApi
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
@@ -164,6 +161,7 @@ fun DefaultPreview() {
     }
 }
 
+@ExperimentalAnimationApi
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreviewDetectorNotRunning() {
@@ -172,6 +170,7 @@ fun DefaultPreviewDetectorNotRunning() {
     }
 }
 
+@ExperimentalAnimationApi
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreviewKnockDetected() {
