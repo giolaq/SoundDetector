@@ -118,42 +118,37 @@ private fun DetectionStatus(state: State, expanded: Boolean) {
 
 @Composable
 private fun DetectorStatus(state: State, modifier: Modifier) {
-        if (state.isDetectorRunning) {
-            Image(
-                painterResource(R.drawable.notlistening),
-                contentDescription = null,
-                modifier = modifier.size(128.dp, 128.dp)
-            )
-        } else {
-            Image(
-                painterResource(R.drawable.listening),
-                contentDescription = null,
-                modifier = modifier.size(128.dp, 128.dp)
-            )
-        }
+    if (state.isDetectorRunning) {
+        Image(
+            painterResource(R.drawable.notlistening),
+            contentDescription = null,
+            modifier = modifier.size(128.dp, 128.dp)
+        )
+    } else {
+        Image(
+            painterResource(R.drawable.listening),
+            contentDescription = null,
+            modifier = modifier.size(128.dp, 128.dp)
+        )
+    }
 }
 
 @Composable
 fun DetectedSound(detectedSoundEvent: SoundEvent?) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.size(128.dp, 128.dp)
-    ) {
-        when (detectedSoundEvent) {
-            SoundEvent.KNOCK -> {
-                Image(
-                    painterResource(R.drawable.knock),
-                    contentDescription = null
-                )
-            }
-            SoundEvent.BABY_CRY -> {
-                Image(
-                    painterResource(R.drawable.cry),
-                    contentDescription = null
-                )
-            }
-            else -> {
-            }
+    when (detectedSoundEvent) {
+        SoundEvent.KNOCK -> {
+            Image(
+                painterResource(R.drawable.knock),
+                contentDescription = null
+            )
+        }
+        SoundEvent.BABY_CRY -> {
+            Image(
+                painterResource(R.drawable.cry),
+                contentDescription = null
+            )
+        }
+        else -> {
         }
     }
 }
