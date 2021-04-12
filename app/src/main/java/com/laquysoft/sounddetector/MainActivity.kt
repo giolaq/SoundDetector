@@ -77,7 +77,7 @@ fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) 
             .fillMaxHeight()
             .fillMaxWidth()
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(200.dp, 200.dp)) {
+        Box(contentAlignment = Alignment.Center) {
             Card {
                 var expanded by remember { mutableStateOf(false) }
                 Column {
@@ -86,21 +86,29 @@ fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) 
                         expanded = !expanded
                     })
 
-                    AnimatedVisibility(expanded) {
-                        Spacer(Modifier.size(20.dp))
-
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(128.dp, 128.dp).padding(16.dp)
-                        ) {
-                            if (state.detectedSound == null) {
-                                CircularProgressIndicator(Modifier.size(64.dp, 64.dp))
-                            } else {
-                                DetectedSound(state.detectedSound)
-                            }
-                        }
-                    }
+                   DetectionStatus(state = state, expanded = expanded)
                 }
+            }
+        }
+    }
+}
+
+@ExperimentalAnimationApi
+@Composable
+private fun DetectionStatus(state: State, expanded: Boolean) {
+    AnimatedVisibility(expanded) {
+        Spacer(Modifier.size(20.dp))
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(128.dp, 128.dp)
+                .padding(16.dp)
+        ) {
+            if (state.detectedSound == null) {
+                CircularProgressIndicator(Modifier.size(64.dp, 64.dp))
+            } else {
+                DetectedSound(state.detectedSound)
             }
         }
     }
