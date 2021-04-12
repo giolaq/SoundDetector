@@ -2,7 +2,6 @@ package com.laquysoft.sounddetector
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Paint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,9 +10,10 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -80,13 +80,15 @@ fun Home(state: State, startTimer: () -> Unit = {}, stopTimer: () -> Unit = {}) 
         Box(contentAlignment = Alignment.Center) {
             Card {
                 var expanded by remember { mutableStateOf(false) }
+
                 Column {
+
                     DetectorStatus(state, Modifier.clickable {
                         if (state.isDetectorRunning) stopTimer() else startTimer()
                         expanded = !expanded
                     })
 
-                   DetectionStatus(state = state, expanded = expanded)
+                    DetectionStatus(state = state, expanded = expanded)
                 }
             }
         }
@@ -116,23 +118,19 @@ private fun DetectionStatus(state: State, expanded: Boolean) {
 
 @Composable
 private fun DetectorStatus(state: State, modifier: Modifier) {
-    Box(modifier = modifier) {
         if (state.isDetectorRunning) {
             Image(
                 painterResource(R.drawable.notlistening),
                 contentDescription = null,
-                modifier = Modifier
-                    .size(128.dp, 128.dp)
+                modifier = modifier.size(128.dp, 128.dp)
             )
         } else {
             Image(
                 painterResource(R.drawable.listening),
                 contentDescription = null,
-                modifier = Modifier
-                    .size(128.dp, 128.dp)
+                modifier = modifier.size(128.dp, 128.dp)
             )
         }
-    }
 }
 
 @Composable
